@@ -1,5 +1,6 @@
 import { GLShader } from "./GLShader";
-import { WebGl } from "./WebGl";
+import { WebGl } from "..";
+import { GLUniform } from "./GLUniform";
 
 export class GLProgram {
   static currentProgram?: GLProgram;
@@ -34,6 +35,14 @@ export class GLProgram {
   getUniformLocation(name: string) {
     const gl = WebGl.gl;
     return gl.getUniformLocation(this.program, name);
+  }
+
+  useUniforms(uniforms: Record<string, GLUniform>) {
+    Object.keys(uniforms).forEach((key) => {
+      const uniform = uniforms[key];
+      const loc = this.getUniformLocation(key);
+      uniform.use(loc);
+    });
   }
 
   unUse() {

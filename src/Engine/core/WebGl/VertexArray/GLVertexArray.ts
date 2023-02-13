@@ -1,34 +1,10 @@
-import { GLBuffer, IGLBufferJSON } from "./GLBuffer";
-import { GLElementBuffer, IGLElementBufferJson } from "./GlElementBuffer";
-import { GLProgram } from "./GLProgram";
-import { IDataType } from "./IDataType";
-import { WebGl } from "./WebGl";
-export type IBuffers = Record<
-  string,
-  {
-    buffer: GLBuffer;
-    options?: {
-      offset: number;
-      stride: number;
-      normalized: boolean;
-    };
-  }
->;
-
-export type IGLVertexArrayJSON = {
-  buffers: Record<
-    string,
-    {
-      buffer: IGLBufferJSON;
-      options?: {
-        offset: number;
-        stride: number;
-        normalized: boolean;
-      };
-    }
-  >;
-  elementBuffer?: IGLElementBufferJson;
-};
+import { GLBuffer } from "../Buffer/GLBuffer";
+import { GLElementBuffer } from "../Buffer/GLElementBuffer";
+import { GLProgram } from "../Program/GLProgram";
+import { WebGl } from "..";
+import { convertToWebGlType } from "./utils/convertToWebGLType";
+import { IBuffers } from "./types/IBuffers";
+import { IGLVertexArrayInfo } from "./types/IGLVertexArrayInfo";
 
 export class GLVertexArray {
   vao: WebGLVertexArrayObject;
@@ -44,45 +20,22 @@ export class GLVertexArray {
 
   bindElementBuffer() {
     if (!this.elementBuffer) return;
-    console.log(this.elementBuffer);
-    const gl = WebGl.gl;
-
     this.elementBuffer.bind();
   }
 
   bindBuffers(program: GLProgram) {
-    const gl = WebGl.gl;
     Object.keys(this.buffers).forEach((key) => {
-      const idx = gl.getAttribLocation(program.program, key);
+      const idx = WebGl.gl.getAttribLocation(program.program, key);
       const bufferData = this.buffers[key];
       bufferData.buffer.bind();
       this.enablePointer(idx, {
         size: bufferData.buffer.size,
-        type: this.convertType(bufferData.buffer.type),
+        type: convertToWebGlType(bufferData.buffer.type),
         normalized: bufferData.options?.normalized ?? false,
         offset: bufferData.options?.offset ?? 0,
         stride: bufferData.options?.stride ?? 0,
       });
     });
-  }
-
-  convertType(type: IDataType) {
-    const gl = WebGl.gl;
-    switch (type) {
-      case "float":
-      case "float64":
-        return gl.FLOAT;
-
-      case "int8":
-      case "int16":
-      case "int32":
-        return gl.INT;
-
-      case "uint8":
-      case "uint16":
-      case "uint32":
-        return gl.UNSIGNED_INT;
-    }
   }
 
   bind() {
@@ -135,22 +88,22 @@ export class GLVertexArray {
     }
   }
 
-  static fromJson(json: IGLVertexArrayJSON) {
-    const buffers: IBuffers = {};
+  static fromData(json: IGLVertexArrayInfo) {
+    const attributes: IBuffers = {};
 
-    Object.keys(json.buffers).forEach((key) => {
-      const bufferData = json.buffers[key];
-      buffers[key] = {
-        buffer: GLBuffer.fromJSON(bufferData.buffer),
+    Object.keys(json.attributes).forEach((key) => {
+      const bufferData = json.attributes[key];
+      attributes[key] = {
+        buffer: new GLBuffer(bufferData.buffer),
         options: bufferData.options,
       };
     });
 
     let elementBuffer: undefined | GLElementBuffer = undefined;
-    if (json.elementBuffer) {
-      elementBuffer = GLElementBuffer.fromJson(json.elementBuffer);
+    if (json.indices) {
+      elementBuffer = GLElementBuffer.fromJson(json.indices);
     }
 
-    return new GLVertexArray(buffers, elementBuffer);
+    return new GLVertexArray(attributes, elementBuffer);
   }
 }

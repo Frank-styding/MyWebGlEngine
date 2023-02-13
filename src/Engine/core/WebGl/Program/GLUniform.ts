@@ -1,47 +1,12 @@
-import { Matrix2x2 } from "../math/Matrix2x2";
-import { Matrix3x3 } from "../math/Matrix3x3";
-import { Matrix4x4 } from "../math/Matrix4x4";
-import { Vector2 } from "../math/Vector2";
-import { Vector3 } from "../math/Vector3";
-import { Vector4 } from "../math/Vector4";
-import { WebGl } from "./WebGl";
-
-type IUniformType<T> = T extends number
-  ? "float:1" | "int:1"
-  : T extends [number]
-  ? "float:1" | "int:1" | "vec:int:1" | "vec:float1"
-  : T extends [number, number]
-  ? "float:2" | "int:2" | "vec:float:2" | "vec:int:2"
-  : T extends [number, number, number]
-  ? "float:3" | "int:3" | "vec:float:3" | "vec:int:3"
-  : T extends [number, number, number, number]
-  ? "float:4" | "int:4" | "vec:float:4" | "vec:int:4"
-  : T extends Vector2
-  ? "int" | "float"
-  : T extends Vector3
-  ? "int" | "float"
-  : T extends Vector4
-  ? "int" | "float"
-  : T extends Matrix2x2
-  ? "matrix"
-  : T extends Matrix3x3
-  ? "matrix"
-  : T extends Matrix4x4
-  ? "matrix"
-  : undefined;
-
-type IUniformValues =
-  | number
-  | [number]
-  | [number, number]
-  | [number, number, number]
-  | [number, number, number, number]
-  | Matrix2x2
-  | Matrix3x3
-  | Matrix4x4
-  | Vector4
-  | Vector3
-  | Vector2;
+import { WebGl } from "..";
+import { Matrix2x2 } from "../../math/Matrix2x2";
+import { Matrix3x3 } from "../../math/Matrix3x3";
+import { Matrix4x4 } from "../../math/Matrix4x4";
+import { Vector2 } from "../../math/Vector2";
+import { Vector3 } from "../../math/Vector3";
+import { Vector4 } from "../../math/Vector4";
+import { IUniformType } from "./types/IUniformType";
+import { IUniformValues } from "./types/IUniformValues";
 
 export class GLUniform<T extends IUniformValues = any> {
   constructor(public value: T, public type: IUniformType<T>) {}
@@ -115,7 +80,7 @@ export class GLUniform<T extends IUniformValues = any> {
         gl.uniform4iv(loc, ArrayValue);
         break;
 
-      case "matrix":
+      case "mat":
         if (value instanceof Matrix2x2) {
           gl.uniformMatrix2fv(loc, false, new Float32Array(value.data));
         }
@@ -128,10 +93,14 @@ export class GLUniform<T extends IUniformValues = any> {
         break;
       case "int":
         if (value instanceof Vector2) {
-          gl.uniform2iv(loc, [value.x, value.y]);
+          const _value = value as Vector2;
+
+          gl.uniform2iv(loc, [_value.x, _value.y]);
         }
         if (value instanceof Vector3) {
-          gl.uniform3iv(loc, [value.x, value.y, value.z]);
+          const _value = value as Vector3;
+
+          gl.uniform3iv(loc, [_value.x, value.y, value.z]);
         }
         if (value instanceof Vector4) {
           gl.uniform4iv(loc, [value.x, value.y, value.z, value.w]);

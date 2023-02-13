@@ -1,15 +1,15 @@
-import { GLProgram } from "./GLProgram";
-import { GlTexture2D } from "./GlTexture";
-import { GLUniform } from "./GLUniform";
-import { GLVertexArray } from "./GLVertexArray";
+import { GLProgram } from "./Program/GLProgram";
+import { GLTexture2D } from "./Texture/GLTexture2D";
+import { GLUniform } from "./Program/GLUniform";
+import { GLVertexArray } from "./VertexArray/GLVertexArray";
 import { WebGl } from "./WebGl";
 
 export class GlRenderer {
   constructor(
     public program: GLProgram,
     public vertexArray: GLVertexArray,
-    public uniform: Record<string, GLUniform> = {},
-    public textures: GlTexture2D[] = []
+    public uniforms: Record<string, GLUniform> = {},
+    public textures: GLTexture2D[] = []
   ) {}
 
   render() {
@@ -26,17 +26,14 @@ export class GlRenderer {
       texture.bind(i);
     });
 
-    Object.keys(this.uniform).forEach((key) => {
-      const uniform = this.uniform[key];
-      const loc = this.program.getUniformLocation(key);
-      uniform.use(loc);
-    });
+    this.program.useUniforms(this.uniforms);
 
     this.vertexArray.draw();
 
     this.textures.forEach((texture, i) => {
       texture.unBind(i);
     });
+
     this.vertexArray.unBind();
     this.program.unUse();
   }

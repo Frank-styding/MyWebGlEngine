@@ -1,4 +1,4 @@
-import { WebGl } from "./WebGl";
+import { WebGl } from "../WebGl";
 
 export class GLShader {
   shader: WebGLShader;

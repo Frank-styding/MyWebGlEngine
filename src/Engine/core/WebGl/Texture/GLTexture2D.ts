@@ -1,7 +1,6 @@
-import { AssetLoader } from "../../assetLoader/AssetLoader";
-import { WebGl } from "./WebGl";
+import { WebGl } from "..";
 
-export class GlTexture2D {
+export class GLTexture2D {
   texture: WebGLTexture;
   constructor() {
     const gl = WebGl.gl;
@@ -58,11 +57,5 @@ export class GlTexture2D {
   destroy() {
     const gl = WebGl.gl;
     gl.deleteTexture(this.texture);
-  }
-
-  static fromAssets(assetName: string) {
-    const texture = new GlTexture2D();
-    texture.onLoadImage(AssetLoader.getLoadedAsset(assetName).data);
-    return texture;
   }
 }
